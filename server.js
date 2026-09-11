@@ -11,7 +11,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { launchObs, openInBrowser } from './lib/launch.mjs';
+import { obsState, launchObs, openInBrowser } from './lib/launch.mjs';
 
 const projectDir = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(projectDir, 'public');
@@ -175,6 +175,7 @@ app.listen(PORT, '127.0.0.1', async () => {
 
 	openInBrowser(PANEL_URL);
 
+	// Чужой OBS сами не перезапускаем: вдруг там идёт эфир. Об этом говорит npm run obs
 	const obs = await launchObs();
 
 	if (obs === 'missing') {
@@ -184,9 +185,19 @@ app.listen(PORT, '127.0.0.1', async () => {
 		return;
 	}
 
-	if (obs === 'alreadyRunning') {
-		console.log('  OBS уже запущен — но доступ к камере он получает только флагом при старте.');
-		console.log('  Если в источнике «Доступ к камере запрещён»: закройте OBS и запустите npm start заново.');
+	if (obs === 'noCameraAccess') {
+		console.log('  ВНИМАНИЕ: OBS запущен без доступа к камере — в источнике будет');
+		console.log('  «Доступ к камере запрещён». Так бывает, когда OBS открыли двойным кликом:');
+		console.log('  доступ он получает только флагом при старте.');
+		console.log('');
+		console.log('  Лечится одной командой (она перезапустит OBS):  npm run obs');
+		console.log('');
+
+		return;
+	}
+
+	if (obs === 'ready') {
+		console.log('  OBS уже запущен с доступом к камере.');
 		console.log('');
 
 		return;
