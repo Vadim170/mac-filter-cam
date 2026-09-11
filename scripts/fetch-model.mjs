@@ -23,6 +23,12 @@ const SOURCES = [
 /** Модель весит около 3,7 МБ: файл меньше мегабайта — точно обрезок или страница ошибки. */
 const MIN_MODEL_BYTES = 1_000_000;
 
+/**
+ * Таймаут на источник. Без него `npm start` на новой машине может висеть вечно:
+ * адрес молча не отвечает, а до запасного дело так и не доходит.
+ */
+const SOURCE_TIMEOUT_MS = 30_000;
+
 const alreadyDownloaded = async () => {
 	try {
 		return (await stat(modelPath)).size >= MIN_MODEL_BYTES;
@@ -31,21 +37,36 @@ const alreadyDownloaded = async () => {
 	}
 };
 
+// Пишем во временный файл: оборванная закачка не должна оставить битую модель под нужным именем
+const tempPath = `${modelPath}.part`;
+
+const removeTemp = async () => {
+	try {
+		await unlink(tempPath);
+	} catch {
+		// Файла может и не быть — это нормально
+	}
+};
+
 const download = async (url) => {
-	const response = await fetch(url, { redirect: 'follow' });
+	// Таймаут накрывает и ответ, и скачивание тела: зависшая передача обрывается так же,
+	// как молчащий сервер, и мы идём к следующему источнику
+	const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(SOURCE_TIMEOUT_MS) });
 
 	if (!response.ok || !response.body) {
 		throw new Error(`${response.status} ${response.statusText}`);
 	}
 
-	// Пишем во временный файл: оборванная закачка не должна оставить битую модель под нужным именем
-	const tempPath = `${modelPath}.part`;
+	try {
+		await pipeline(Readable.fromWeb(response.body), createWriteStream(tempPath));
 
-	await pipeline(Readable.fromWeb(response.body), createWriteStream(tempPath));
+		if ((await stat(tempPath)).size < MIN_MODEL_BYTES) {
+			throw new Error('файл подозрительно мал');
+		}
+	} catch (error) {
+		await removeTemp();
 
-	if ((await stat(tempPath)).size < MIN_MODEL_BYTES) {
-		await unlink(tempPath);
-		throw new Error('файл подозрительно мал');
+		throw error;
 	}
 
 	await rename(tempPath, modelPath);
@@ -66,10 +87,14 @@ for (const [index, url] of SOURCES.entries()) {
 		console.log('Готово:', path.relative(projectDir, modelPath));
 		process.exit(0);
 	} catch (error) {
-		console.warn(`Не вышло (${error.message})`);
+		const reason = error.name === 'TimeoutError' ? `не ответил за ${SOURCE_TIMEOUT_MS / 1000} с` : error.message;
+
+		console.warn(`Не вышло (${reason})`);
 
 		if (index === SOURCES.length - 1) {
-			console.error('\nНи один адрес не ответил. Положите face_landmarker.task в public/models вручную.');
+			console.error('');
+			console.error('Ни один адрес не ответил. Проверьте сеть и повторите: npm run setup');
+			console.error('Либо положите face_landmarker.task в public/models вручную.');
 			process.exit(1);
 		}
 	}

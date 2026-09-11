@@ -8,9 +8,14 @@
 сглаживание поз, тот же Флойд–Стайнберг. Звук рычага и всё киосковое (стрим на киоск,
 биты для термопринтера) выброшено.
 
-## Запуск
+## Установка на новом маке
 
 ```sh
+brew install node
+brew install --cask obs
+
+git clone https://github.com/Vadim170/mac-filter-cam.git
+cd mac-filter-cam
 npm install
 npm start
 ```
