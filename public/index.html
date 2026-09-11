@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Фильтр камеры — маски и дизеринг</title>
+		<link rel="stylesheet" href="/styles.css" />
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🎰</text></svg>" />
+	</head>
+	<body data-mode="panel">
+		<main class="stage">
+			<canvas id="output" class="stage__canvas"></canvas>
+			<p id="hint" class="stage__hint" hidden></p>
+		</main>
+
+		<aside class="panel">
+			<header class="panel__head">
+				<h1 class="panel__title">Фильтр камеры</h1>
+				<div class="chips">
+					<span class="chip" id="chipModel">модель…</span>
+					<span class="chip" id="chipObs">OBS не подключён</span>
+					<span class="chip" id="chipFps">— fps</span>
+				</div>
+			</header>
+
+			<section class="block">
+				<div class="block__head">
+					<h2 class="block__title">Рулетка</h2>
+					<button type="button" class="link" id="resetMasks">снять все</button>
+				</div>
+				<div class="slot" id="slot"></div>
+				<p class="note">Тык по барабану — следующая маска. Рычаг или пробел — крутить всё.</p>
+			</section>
+
+			<section class="block">
+				<h2 class="block__title">Картинка</h2>
+
+				<label class="row row--switch">
+					<span class="row__label">Дизеринг</span>
+					<input type="checkbox" id="dither" />
+				</label>
+
+				<label class="row">
+					<span class="row__label">Размер точки <b id="dotSizeValue"></b></span>
+					<input type="range" id="dotSize" min="1" max="5" step="1" />
+				</label>
+
+				<label class="row">
+					<span class="row__label">Контраст <b id="contrastValue"></b></span>
+					<input type="range" id="contrast" min="1" max="3" step="0.05" />
+				</label>
+
+				<label class="row">
+					<span class="row__label">Яркость <b id="brightnessValue"></b></span>
+					<input type="range" id="brightness" min="-80" max="80" step="1" />
+				</label>
+
+				<label class="row row--switch">
+					<span class="row__label">Зеркалить<small>собеседник увидит вас отражённым</small></span>
+					<input type="checkbox" id="mirror" />
+				</label>
+			</section>
+
+			<section class="block">
+				<h2 class="block__title">Камера</h2>
+
+				<label class="row row--stacked">
+					<span class="row__label">Устройство</span>
+					<select id="device"></select>
+				</label>
+
+				<label class="row row--stacked">
+					<span class="row__label">Разрешение</span>
+					<select id="resolution">
+						<option value="1920x1080">1920 × 1080</option>
+						<option value="1280x720">1280 × 720</option>
+						<option value="960x540">960 × 540</option>
+						<option value="640x360">640 × 360</option>
+					</select>
+				</label>
+
+				<label class="row row--switch">
+					<span class="row__label">Превью здесь<small>выключите, чтобы не гонять камеру дважды</small></span>
+					<input type="checkbox" id="preview" />
+				</label>
+			</section>
+
+			<section class="block">
+				<h2 class="block__title">Вывод в Zoom</h2>
+				<ol class="steps">
+					<li>OBS → Источники → <b>+</b> → <b>Браузер</b>.</li>
+					<li>URL ниже, ширина и высота — как разрешение выше.</li>
+					<li><b>Запустить виртуальную камеру</b> в OBS.</li>
+					<li>В Zoom выбрать <b>OBS Virtual Camera</b>.</li>
+				</ol>
+				<div class="copy">
+					<input type="text" id="obsUrl" readonly />
+					<button type="button" id="copyUrl">Копировать</button>
+				</div>
+			</section>
+		</aside>
+
+		<script type="module" src="/js/app.js"></script>
+	</body>
+</html>

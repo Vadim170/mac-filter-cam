@@ -1,0 +1,19 @@
+{
+	"name": "mac-filter-cam",
+	"version": "1.0.0",
+	"description": "Камера-фильтр для созвонов на macOS: маски с рулеткой + дизеринг, выход через OBS Virtual Camera",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "node server.js",
+		"prestart": "node scripts/fetch-model.mjs",
+		"serve": "NO_LAUNCH=1 node server.js",
+		"setup": "node scripts/fetch-model.mjs",
+		"obs": "node scripts/open-obs.mjs",
+		"cam": "node scripts/open-cam-window.mjs"
+	},
+	"dependencies": {
+		"@mediapipe/tasks-vision": "1.0.1",
+		"express": "^4.22.2"
+	}
+}

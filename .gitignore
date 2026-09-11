@@ -1,0 +1,6 @@
+node_modules/
+# Модель качается скриптом setup: 3,7 МБ бинарника в репозитории ни к чему
+public/models/*.task
+public/models/*.part
+.DS_Store
+.chrome-cam/
